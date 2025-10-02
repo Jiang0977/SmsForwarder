@@ -147,6 +147,10 @@ class FeishuAppFragment : BaseFragment<FragmentSendersFeishuAppBinding?>(), View
                         binding!!.rgMsgType.check(settingVo.getMsgTypeCheckId())
                         binding!!.etTitleTemplate.setText(settingVo.titleTemplate)
                         binding!!.etMessageCard.setText(settingVo.messageCard)
+                        // 未读加急设置回显
+                        binding!!.sbEnableUrgent.isChecked = settingVo.enableUrgent
+                        binding!!.etUrgentMaxAttempts.setText(settingVo.urgentMaxAttempts.toString())
+                        binding!!.etUrgentInitialDelay.setText(settingVo.urgentInitialDelaySeconds.toString())
                     }
                 }
             })
@@ -255,7 +259,23 @@ class FeishuAppFragment : BaseFragment<FragmentSendersFeishuAppBinding?>(), View
             throw Exception(getString(R.string.invalid_message_card))
         }
 
-        return FeishuAppSetting(appId, appSecret, receiveId, msgType, title, receiveIdType, messageCard)
+        // 读取未读加急设置
+        val enableUrgent = binding!!.sbEnableUrgent.isChecked
+        val urgentMaxAttempts = (binding!!.etUrgentMaxAttempts.text?.toString()?.toIntOrNull() ?: 3).coerceIn(1, 5)
+        val urgentInitialDelaySeconds = (binding!!.etUrgentInitialDelay.text?.toString()?.toIntOrNull() ?: 60).coerceAtLeast(1)
+
+        return FeishuAppSetting(
+            appId,
+            appSecret,
+            receiveId,
+            msgType,
+            title,
+            receiveIdType,
+            messageCard,
+            enableUrgent,
+            urgentMaxAttempts,
+            urgentInitialDelaySeconds,
+        )
     }
 
     override fun onDestroyView() {

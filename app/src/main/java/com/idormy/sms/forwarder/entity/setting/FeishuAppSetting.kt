@@ -12,6 +12,10 @@ data class FeishuAppSetting(
     val titleTemplate: String = "",
     val receiveIdType: String = "user_id",
     val messageCard: String = "", //自定义消息卡片
+    // 未读加急设置
+    var enableUrgent: Boolean = false,
+    var urgentMaxAttempts: Int = 3,
+    var urgentInitialDelaySeconds: Int = 60,
 ) : Serializable {
 
     fun getReceiveIdTypeCheckId(): Int {

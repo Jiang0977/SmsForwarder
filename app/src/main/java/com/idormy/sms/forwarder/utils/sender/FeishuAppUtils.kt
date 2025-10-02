@@ -154,6 +154,34 @@ class FeishuAppUtils private constructor() {
                         val resp = Gson().fromJson(response, FeishuAppResult::class.java)
                         val status = if (resp?.code == 0L) 2 else 0
                         SendUtils.updateLogs(logId, status, response)
+
+                        // 如果开启未读加急，并且是 user_id 类型，调度后台任务
+                        try {
+                            if (status == 2 && setting.enableUrgent && setting.receiveIdType == "user_id") {
+                                val messageId = try {
+                                    // resp.content 在发送消息接口回包中可能不包含 message_id，这里直接解析原始 JSON 以获取 data.message_id
+                                    val jsonObj = com.google.gson.JsonParser.parseString(response).asJsonObject
+                                    val dataObj = jsonObj.getAsJsonObject("data")
+                                    dataObj?.get("message_id")?.asString
+                                        ?: dataObj?.getAsJsonObject("message")?.get("message_id")?.asString
+                                } catch (e: Exception) {
+                                    null
+                                }
+                                if (!messageId.isNullOrEmpty()) {
+                                    com.idormy.sms.forwarder.workers.FeishuUrgentWorker.schedule(
+                                        appContext = com.idormy.sms.forwarder.App.context,
+                                        appId = setting.appId,
+                                        userId = setting.receiveId,
+                                        messageId = messageId,
+                                        maxAttempts = setting.urgentMaxAttempts.coerceIn(1, 5),
+                                        initialDelaySeconds = (if (setting.urgentInitialDelaySeconds < 1) 60 else setting.urgentInitialDelaySeconds).toLong()
+                                    )
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "schedule urgent error: ${e.message}")
+                        }
+
                         SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
                     }
 

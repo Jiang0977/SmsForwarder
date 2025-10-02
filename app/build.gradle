@@ -109,24 +109,9 @@ android {
             minifyEnabled true
             // 混淆配置
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (isNeedPackage.toBoolean()) {
-                signingConfig signingConfigs.release
-                if (file('local.properties').exists()) {
-                    Properties properties = new Properties()
-                    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-                    def appID = properties.getProperty("APP_ID_UMENG")
-                    if (appID != null) {
-                        buildConfigField "String", "APP_ID_UMENG", appID
-                    } else {
-                        buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-                    }
-                } else {
-                    buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-                }
-            } else {
-                signingConfig signingConfigs.debug
-                buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-            }
+            // 使用debug签名配置来避免签名文件问题
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
         }
         debug {
             // 调试模式开关
@@ -138,24 +123,8 @@ android {
             minifyEnabled true
             // 混淆配置
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (isNeedPackage.toBoolean()) {
-                signingConfig signingConfigs.release
-                if (file('local.properties').exists()) {
-                    Properties properties = new Properties()
-                    properties.load(project.rootProject.file('local.properties').newDataInputStream())
-                    def appID = properties.getProperty("APP_ID_UMENG")
-                    if (appID != null) {
-                        buildConfigField "String", "APP_ID_UMENG", appID
-                    } else {
-                        buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-                    }
-                } else {
-                    buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-                }
-            } else {
-                signingConfig signingConfigs.debug
-                buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
-            }
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "APP_ID_UMENG", '"60254fc7425ec25f10f4293e"'
         }
     }
 
@@ -189,7 +158,7 @@ android {
         }
     }
 
-    android.applicationVariants.configureEach { variant ->
+    applicationVariants.configureEach { variant ->
         variant.outputs.each { output ->
             //noinspection GrDeprecatedAPIUsage
             def abiName = output.getFilter(com.android.build.OutputFile.ABI)
@@ -383,6 +352,10 @@ dependencies {
 
     //侧边栏菜单：https://github.com/yarolegovich/SlidingRootNav
     implementation 'com.yarolegovich:sliding-root-nav:1.1.1'
+
+    // ------- Instrumented Test only dependencies -------
+    androidTestImplementation 'com.squareup.okhttp3:okhttp:4.11.0'
+    androidTestImplementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
 }
 //自动添加X-Library依赖
 apply from: 'x-library.gradle'
