@@ -66,6 +66,12 @@
                         android:text="@string/sim2"
                         tools:ignore="TouchTargetSizeCheck" />
 
+                    <RadioButton
+                        android:id="@+id/rb_sim_slot_all"
+                        style="@style/rg_rb_style_match"
+                        android:text="@string/all_sim_slots"
+                        tools:ignore="TouchTargetSizeCheck" />
+
                 </RadioGroup>
 
             </LinearLayout>
@@ -94,7 +100,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/phone_numbers_with_tag_hint"
-                    android:singleLine="true"
+                    android:inputType="textMultiLine"
                     app:met_clearButton="true"
                     app:met_errorMessage="@string/phone_numbers_with_tag_error"
                     app:met_regexp="@string/phone_numbers_with_tag_regex"

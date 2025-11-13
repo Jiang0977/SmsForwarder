@@ -26,9 +26,9 @@ import com.idormy.sms.forwarder.utils.SettingUtils
 import com.idormy.sms.forwarder.utils.TAG_LIST
 
 @Database(
-    entities = [Frpc::class, Msg::class, Logs::class, Rule::class, Sender::class, Task::class],
+    entities = [Frpc::class, Msg::class, Logs::class, Rule::class, Sender::class, Task::class, com.idormy.sms.forwarder.database.entity.TaskLog::class],
     views = [LogsDetail::class],
-    version = 20,
+    version = 21,
     exportSchema = false
 )
 @TypeConverters(ConvertersDate::class)
@@ -40,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun ruleDao(): RuleDao
     abstract fun senderDao(): SenderDao
     abstract fun taskDao(): TaskDao
+    abstract fun taskLogDao(): com.idormy.sms.forwarder.database.dao.TaskLogDao
 
     companion object {
         @Volatile
@@ -111,6 +112,7 @@ custom_domains = smsf.demo.com
                     MIGRATION_17_18,
                     MIGRATION_18_19,
                     MIGRATION_19_20,
+                    MIGRATION_20_21,
                 )
 
             /*if (BuildConfig.DEBUG) {
@@ -457,6 +459,29 @@ CREATE TABLE "Task" (
         private val MIGRATION_19_20 = object : Migration(19, 20) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("Alter table rule add column silent_day_of_week TEXT NOT NULL DEFAULT '' ")
+            }
+        }
+
+        // 任务执行日志
+        private val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+CREATE TABLE "TaskLog" (
+  "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "task_id" INTEGER NOT NULL DEFAULT 0,
+  "planned_time" INTEGER NOT NULL,
+  "actual_time" INTEGER NOT NULL,
+  "sim_slot" INTEGER NOT NULL DEFAULT 0,
+  "phone_number" TEXT NOT NULL DEFAULT '',
+  "result" INTEGER NOT NULL DEFAULT 0,
+  "reason" TEXT NOT NULL DEFAULT ''
+)
+""".trimIndent()
+                )
+                database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS \"index_TaskLog_id\" ON \"TaskLog\" ( \"id\" ASC)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS \"index_TaskLog_task_id\" ON \"TaskLog\" ( \"task_id\" ASC)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS \"index_TaskLog_actual_time\" ON \"TaskLog\" ( \"actual_time\" ASC)")
             }
         }
 

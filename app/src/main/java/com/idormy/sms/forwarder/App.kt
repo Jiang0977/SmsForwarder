@@ -30,6 +30,7 @@ import com.idormy.sms.forwarder.database.repository.MsgRepository
 import com.idormy.sms.forwarder.database.repository.RuleRepository
 import com.idormy.sms.forwarder.database.repository.SenderRepository
 import com.idormy.sms.forwarder.database.repository.TaskRepository
+import com.idormy.sms.forwarder.database.repository.TaskLogRepository
 import com.idormy.sms.forwarder.entity.SimInfo
 import com.idormy.sms.forwarder.receiver.BatteryReceiver
 import com.idormy.sms.forwarder.receiver.BluetoothReceiver
@@ -86,6 +87,7 @@ class App : Application(), CactusCallback, Configuration.Provider by Core {
     val ruleRepository by lazy { RuleRepository(database.ruleDao()) }
     val senderRepository by lazy { SenderRepository(database.senderDao()) }
     val taskRepository by lazy { TaskRepository(database.taskDao()) }
+    val taskLogRepository by lazy { TaskLogRepository(database.taskLogDao()) }
 
     companion object {
         const val TAG: String = "SmsForwarder"

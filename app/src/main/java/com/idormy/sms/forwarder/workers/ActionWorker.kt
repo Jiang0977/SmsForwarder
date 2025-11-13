@@ -25,6 +25,7 @@ import com.idormy.sms.forwarder.entity.action.RuleSetting
 import com.idormy.sms.forwarder.entity.action.SenderSetting
 import com.idormy.sms.forwarder.entity.action.SettingsSetting
 import com.idormy.sms.forwarder.entity.action.SmsSetting
+import com.idormy.sms.forwarder.database.entity.TaskLog
 import com.idormy.sms.forwarder.entity.action.TaskActionSetting
 import com.idormy.sms.forwarder.service.HttpServerService
 import com.idormy.sms.forwarder.service.LocationService
@@ -73,6 +74,7 @@ class ActionWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         val taskConditionsJson = inputData.getString(TaskWorker.TASK_CONDITIONS)
         val taskActionsJson = inputData.getString(TaskWorker.TASK_ACTIONS)
         val msgInfoJson = inputData.getString(TaskWorker.MSG_INFO)
+        val plannedTimeMillis = inputData.getLong(TaskWorker.PLANNED_TIME, 0L)
         Log.d(TAG, "taskId: $taskId, taskActionsJson: $taskActionsJson, msgInfoJson: $msgInfoJson")
         if (taskId == -1L || taskActionsJson.isNullOrEmpty() || msgInfoJson.isNullOrEmpty()) {
             Log.d(TAG, "taskId is -1L or actionSetting is null")
@@ -120,23 +122,98 @@ class ActionWorker(context: Context, params: WorkerParameters) : CoroutineWorker
                         }
                         Log.d(TAG, App.SimInfoList.toString())
 
-                        //发送卡槽: 1=SIM1, 2=SIM2
-                        val simSlotIndex = smsSetting.simSlot - 1
-                        //TODO：取不到卡槽信息时，采用默认卡槽发送
-                        val mSubscriptionId: Int = App.SimInfoList[simSlotIndex]?.mSubscriptionId ?: -1
-
-                        val msg = if (ActivityCompat.checkSelfPermission(App.context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-                            getString(R.string.no_sms_sending_permission)
-                        } else {
-                            val mobileList = msgInfo.replaceTemplate(smsSetting.phoneNumbers)
-                            val message = msgInfo.replaceTemplate(smsSetting.msgContent)
-                            PhoneUtils.sendSms(mSubscriptionId, mobileList, message)
+                        // 内容长度显式校验
+                        val message = msgInfo.replaceTemplate(smsSetting.msgContent)
+                        if (!getString(R.string.msg_content_regex).toRegex().matches(message)) {
+                            writeLog(getString(R.string.msg_content_error), "ERROR")
+                            // 记录失败日志（无需中断其他动作）
+                            try {
+                                Core.taskLog.insert(
+                                    TaskLog(
+                                        taskId = taskId,
+                                        plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(),
+                                        actualTime = java.util.Date(),
+                                        simSlot = 0,
+                                        phoneNumber = "",
+                                        result = 0,
+                                        reason = getString(R.string.msg_content_error)
+                                    )
+                                )
+                            } catch (ignored: Exception) {}
+                            continue
                         }
-                        if (msg == null || msg == "") {
+
+                        // 构造卡槽集合
+                        val targetSlots: List<Int> = if (smsSetting.allSlots) listOf(1, 2) else listOf(smsSetting.simSlot)
+                        // 号码展开与清洗（分号/逗号/换行）
+                        val mobileRaw = msgInfo.replaceTemplate(smsSetting.phoneNumbers)
+                        val normalized = mobileRaw
+                            .replace("\r\n", "\n")
+                            .replace('\r', '\n')
+                            .replace('\n', ';')
+                            .replace('，', ';')
+                            .replace('；', ';')
+                            .replace(',', ';')
+                        val mobileList = normalized.split(';').map { it.trim() }.filter { it.isNotEmpty() }
+                        val mobileSet = LinkedHashSet<String>(mobileList)
+
+                        // 逐卡槽×逐号码 发送
+                        var localSuccess = true
+                        for (slot in targetSlots) {
+                            val simSlotIndex = slot - 1
+                            val mSubscriptionId: Int? = App.SimInfoList[simSlotIndex]?.mSubscriptionId
+                            if (mSubscriptionId == null) {
+                                // 卡槽不可用：记录所有号码失败
+                                for (mobile in mobileSet) {
+                                    try {
+                                        Core.taskLog.insert(
+                                            TaskLog(
+                                                taskId = taskId,
+                                                plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(),
+                                                actualTime = java.util.Date(),
+                                                simSlot = slot,
+                                                phoneNumber = mobile,
+                                                result = 0,
+                                                reason = "SIM slot unavailable"
+                                            )
+                                        )
+                                    } catch (_: Exception) {}
+                                }
+                                localSuccess = false
+                                continue
+                            }
+
+                            if (ActivityCompat.checkSelfPermission(App.context, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                                for (mobile in mobileSet) {
+                                    try { Core.taskLog.insert(TaskLog(taskId = taskId, plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(), actualTime = java.util.Date(), simSlot = slot, phoneNumber = mobile, result = 0, reason = getString(R.string.no_sms_sending_permission))) } catch (_: Exception) {}
+                                }
+                                writeLog(getString(R.string.no_sms_sending_permission), "ERROR")
+                                localSuccess = false
+                                continue
+                            }
+
+                            for (mobile in mobileSet) {
+                                val valid = Regex("^\\+?\\d{3,20}$").matches(mobile)
+                                if (!valid) {
+                                    try { Core.taskLog.insert(TaskLog(taskId = taskId, plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(), actualTime = java.util.Date(), simSlot = slot, phoneNumber = mobile, result = 0, reason = "invalid phone")) } catch (_: Exception) {}
+                                    localSuccess = false
+                                    continue
+                                }
+                                val res: String? = PhoneUtils.sendSms(mSubscriptionId, mobile, message)
+                                if (res.isNullOrEmpty()) {
+                                    try { Core.taskLog.insert(TaskLog(taskId = taskId, plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(), actualTime = java.util.Date(), simSlot = slot, phoneNumber = mobile, result = 1, reason = "")) } catch (_: Exception) {}
+                                } else {
+                                    try { Core.taskLog.insert(TaskLog(taskId = taskId, plannedTime = if (plannedTimeMillis > 0) java.util.Date(plannedTimeMillis) else java.util.Date(), actualTime = java.util.Date(), simSlot = slot, phoneNumber = mobile, result = 0, reason = res)) } catch (_: Exception) {}
+                                    localSuccess = false
+                                }
+                            }
+                        }
+
+                        if (localSuccess) {
                             successNum++
                             writeLog(String.format(getString(R.string.successful_execution), smsSetting.description), "SUCCESS")
                         } else {
-                            writeLog(msg, "ERROR")
+                            writeLog("SendSms partially/fully failed", "ERROR")
                         }
                     }
 

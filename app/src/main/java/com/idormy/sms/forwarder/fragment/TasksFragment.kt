@@ -57,6 +57,12 @@ class TasksFragment : BaseFragment<FragmentTasksBinding?>(), TaskPagingAdapter.O
                 openNewPage(TasksEditFragment::class.java)
             }
         })
+        titleBar!!.addAction(object : TitleBar.ImageAction(R.drawable.ic_menu_logs) {
+            @SingleClick
+            override fun performAction(view: View) {
+                openNewPage(TaskLogsFragment::class.java)
+            }
+        })
         return titleBar
     }
 

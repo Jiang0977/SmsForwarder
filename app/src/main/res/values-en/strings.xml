@@ -744,9 +744,11 @@
     <string name="phone_numbers_hint">Required, separate multiple phone numbers with semicolons</string>
     <string name="phone_numbers_error">Invalid Phone Numbers, eg. 15888888888;19999999999</string>
     <string name="phone_numbers_regex">^(\\+?\\d{3,20})(;\\+?\\d{3,20})*$</string>
-    <string name="phone_numbers_with_tag_hint">Required, separate multiple phone numbers or tag with semicolons</string>
+    <string name="phone_numbers_with_tag_hint">Required, separate by semicolon, comma or newline</string>
     <string name="phone_numbers_with_tag_error">Invalid Phone Numbers, eg. 15888888888;{{FROM}};{{SMS###\s*SMS,{([^}]+)},{([^}]+)}\s*===$1}}</string>
-    <string name="phone_numbers_with_tag_regex">^((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\})(;((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\}))*$</string>
+    <string name="phone_numbers_with_tag_regex">^((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\})([;,\\n]((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\}))*$</string>
+    <string name="all_sim_slots">All SIM slots</string>
+    <string name="menu_task_logs">Task Logs</string>
     <string name="msg_content">Msg Content</string>
     <string name="msg_content_hint">Required, one entry within 70 characters, more than 70 characters, one entry for every additional 64 characters</string>
     <string name="msg_content_error">Msg Content cannot be empty, up to 390 characters (6 SMS)</string>
@@ -964,6 +966,16 @@
     <string name="select_task_action">Please select action</string>
     <string name="bottom_sheet_close">Close</string>
     <string name="task_cron">Cron</string>
+    <string name="preset_quick">Quick Preset</string>
+    <string name="preset_custom">Custom</string>
+    <string name="preset_hourly">Hourly</string>
+    <string name="preset_daily">Daily</string>
+    <string name="preset_weekly">Weekly</string>
+    <string name="preset_monthly">Monthly</string>
+    <string name="preset_quarterly">Quarterly</string>
+    <string name="preset_time_hint">Time (HH:mm)</string>
+    <string name="preset_week_hint">Weekday (1-7, Mon=1)</string>
+    <string name="preset_dom_hint">Day of month (1-31)</string>
     <string name="task_cron_tips">Quartz Cron Expression</string>
     <string name="task_to_address">To Address</string>
     <string name="task_to_address_tips">Using latitude and longitude coordinates (WGS-84).</string>

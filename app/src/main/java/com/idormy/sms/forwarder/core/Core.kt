@@ -10,6 +10,7 @@ import com.idormy.sms.forwarder.database.repository.MsgRepository
 import com.idormy.sms.forwarder.database.repository.RuleRepository
 import com.idormy.sms.forwarder.database.repository.SenderRepository
 import com.idormy.sms.forwarder.database.repository.TaskRepository
+import com.idormy.sms.forwarder.database.repository.TaskLogRepository
 import com.idormy.sms.forwarder.utils.Log
 import kotlinx.coroutines.launch
 
@@ -21,6 +22,7 @@ object Core : Configuration.Provider {
     val rule: RuleRepository by lazy { (app as App).ruleRepository }
     val sender: SenderRepository by lazy { (app as App).senderRepository }
     val task: TaskRepository by lazy { (app as App).taskRepository }
+    val taskLog: TaskLogRepository by lazy { (app as App).taskLogRepository }
 
     fun init(app: Application) {
         this.app = app

@@ -745,9 +745,11 @@
     <string name="phone_numbers_hint">必填，多個手機號用半角分號分隔</string>
     <string name="phone_numbers_error">手機號碼格式錯誤，例：15888888888;19999999999</string>
     <string name="phone_numbers_regex">^(\\+?\\d{3,20})(;\\+?\\d{3,20})*$</string>
-    <string name="phone_numbers_with_tag_hint">必填，多個手機號或標籤用半角分號分隔</string>
+    <string name="phone_numbers_with_tag_hint">必填，多個手機號或標籤用分號、逗號或換行分隔</string>
     <string name="phone_numbers_with_tag_error">手機號碼格式錯誤，例：15888888888;{{FROM}};{{SMS###\s*SMS,{([^}]+)},{([^}]+)}\s*===$1}}</string>
-    <string name="phone_numbers_with_tag_regex">^((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\})(;((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\}))*$</string>
+    <string name="phone_numbers_with_tag_regex">^((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\})([;,\\n]((\\+?\\d{3,20})|\\{\\{([^#]+)(?:###([^=]+)===(.*?))?\\}\\}))*$</string>
+    <string name="all_sim_slots">所有卡槽</string>
+    <string name="menu_task_logs">任務日誌</string>
     <string name="msg_content">簡訊內容</string>
     <string name="msg_content_hint">必填，70個字符內算一條，超過70個字符，每增加64字符累加1條</string>
     <string name="msg_content_error">簡訊內容不能為空，最多390字符（6條簡訊）</string>
@@ -965,6 +967,16 @@
     <string name="select_task_action">請選擇動作</string>
     <string name="bottom_sheet_close">關  閉</string>
     <string name="task_cron">定時任務</string>
+    <string name="preset_quick">快捷預設</string>
+    <string name="preset_custom">自定義</string>
+    <string name="preset_hourly">每小時</string>
+    <string name="preset_daily">每天</string>
+    <string name="preset_weekly">每週</string>
+    <string name="preset_monthly">每月</string>
+    <string name="preset_quarterly">每季度</string>
+    <string name="preset_time_hint">時間點（HH:mm）</string>
+    <string name="preset_week_hint">星期（1-7，週一=1）</string>
+    <string name="preset_dom_hint">日期（1-31）</string>
     <string name="task_cron_tips">採用 Quartz Cron 表達式</string>
     <string name="task_to_address">到達地點</string>
     <string name="task_to_address_tips">採用經緯度坐標（WGS-84坐標系）</string>

@@ -55,6 +55,7 @@ class SendSmsFragment : BaseFragment<FragmentTasksActionSendSmsBinding?>(), View
 
     private var description = ""
     private var simSlot = 1
+    private var allSlots = false
     private var phoneNumbers = ""
     private var msgContent = ""
 
@@ -109,7 +110,11 @@ class SendSmsFragment : BaseFragment<FragmentTasksActionSendSmsBinding?>(), View
             msgContent = settingVo.msgContent
         }
 
-        binding!!.rgSimSlot.check(if (simSlot == 1) R.id.rb_sim_slot_1 else R.id.rb_sim_slot_2)
+        if (allSlots) {
+            binding!!.rgSimSlot.check(R.id.rb_sim_slot_all)
+        } else {
+            binding!!.rgSimSlot.check(if (simSlot == 1) R.id.rb_sim_slot_1 else R.id.rb_sim_slot_2)
+        }
         binding!!.etPhoneNumbers.setText(phoneNumbers)
         binding!!.etMsgContent.setText(msgContent)
     }
@@ -146,10 +151,10 @@ class SendSmsFragment : BaseFragment<FragmentTasksActionSendSmsBinding?>(), View
                             override fun onGranted(permissions: List<String>, all: Boolean) {
                                 mCountDownHelper?.start()
                                 try {
-                                    val settingVo = checkSetting()
-                                    Log.d(TAG, settingVo.toString())
-                                    val taskAction = TaskSetting(TASK_ACTION_SENDSMS, getString(R.string.task_sendsms), settingVo.description, Gson().toJson(settingVo), requestCode)
-                                    val taskActionsJson = Gson().toJson(arrayListOf(taskAction))
+                    val settingVo = checkSetting()
+                    Log.d(TAG, settingVo.toString())
+                    val taskAction = TaskSetting(TASK_ACTION_SENDSMS, getString(R.string.task_sendsms), settingVo.description, Gson().toJson(settingVo), requestCode)
+                    val taskActionsJson = Gson().toJson(arrayListOf(taskAction))
                                     val msgInfo = MsgInfo("task", getString(R.string.task_sendsms), settingVo.description, Date(), getString(R.string.task_sendsms))
                                     val actionData = Data.Builder().putLong(TaskWorker.TASK_ID, 0).putString(TaskWorker.TASK_ACTIONS, taskActionsJson).putString(TaskWorker.MSG_INFO, Gson().toJson(msgInfo)).build()
                                     val actionRequest = OneTimeWorkRequestBuilder<ActionWorker>().setInputData(actionData).build()
@@ -195,20 +200,43 @@ class SendSmsFragment : BaseFragment<FragmentTasksActionSendSmsBinding?>(), View
     //检查设置
     @SuppressLint("SetTextI18n")
     private fun checkSetting(): SmsSetting {
-        phoneNumbers = binding!!.etPhoneNumbers.text.toString().trim()
-        if (!getString(R.string.phone_numbers_with_tag_regex).toRegex().matches(phoneNumbers)) {
-            throw Exception(getString(R.string.phone_numbers_with_tag_error))
-        }
-
+        // 内容长度显式校验
         msgContent = binding!!.etMsgContent.text.toString().trim()
         if (!getString(R.string.msg_content_regex).toRegex().matches(msgContent)) {
             throw Exception(getString(R.string.msg_content_error))
         }
 
-        simSlot = if (binding!!.rgSimSlot.checkedRadioButtonId == R.id.rb_sim_slot_2) 2 else 1
+        // 卡槽与全部开关
+        val checkedId = binding!!.rgSimSlot.checkedRadioButtonId
+        allSlots = checkedId == R.id.rb_sim_slot_all
+        simSlot = when (checkedId) {
+            R.id.rb_sim_slot_2 -> 2
+            else -> 1
+        }
 
-        description = String.format(getString(R.string.send_sms_to), simSlot, phoneNumbers)
+        // 号码标准化：换行/逗号/中文分隔符 -> 分号
+        var raw = binding!!.etPhoneNumbers.text.toString()
+        raw = raw.replace("\r\n", "\n")
+        raw = raw.replace('\r', '\n')
+        raw = raw.replace('\n', ';')
+            .replace('，', ';')
+            .replace('；', ';')
+            .replace(',', ';')
+        // 去空白与去重
+        val parts = raw.split(';').map { it.trim() }.filter { it.isNotEmpty() }
+        val unique = LinkedHashSet<String>(parts)
+        val normalized = unique.joinToString(";")
 
-        return SmsSetting(description, simSlot, phoneNumbers, msgContent)
+        if (normalized.isEmpty() || !getString(R.string.phone_numbers_with_tag_regex).toRegex().matches(normalized)) {
+            throw Exception(getString(R.string.phone_numbers_with_tag_error))
+        }
+        phoneNumbers = normalized
+        // 预览回填
+        binding!!.etPhoneNumbers.setText(phoneNumbers)
+
+        description = if (allSlots) String.format(getString(R.string.send_sms_to), 0, phoneNumbers)
+        else String.format(getString(R.string.send_sms_to), simSlot, phoneNumbers)
+
+        return SmsSetting(description, simSlot, allSlots, phoneNumbers, msgContent)
     }
 }

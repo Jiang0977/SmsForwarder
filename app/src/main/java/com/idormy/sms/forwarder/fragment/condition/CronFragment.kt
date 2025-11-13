@@ -82,6 +82,7 @@ class CronFragment : BaseFragment<FragmentTasksConditionCronBinding?>(), View.On
     private var year = "*"
     private var expression = "$second $minute $hour $day $month $week $year"
     private var description = ""
+    private var presetType: String = "custom" // custom/hourly/daily/weekly/monthly
 
     override fun initArgs() {
         XRouter.getInstance().inject(this)
@@ -178,6 +179,46 @@ class CronFragment : BaseFragment<FragmentTasksConditionCronBinding?>(), View.On
                 binding!!.tvNextTimeList.text = ""
                 binding!!.tvNextTimeList.visibility = View.GONE
                 binding!!.separatorCronExpressionCheck.visibility = View.GONE
+            }
+        }
+
+        // 预设切换（FlowTagLayout 单选）
+        run {
+            val presetList = listOf(
+                getString(R.string.preset_custom),
+                getString(R.string.preset_hourly),
+                getString(R.string.preset_daily),
+                getString(R.string.preset_weekly),
+                getString(R.string.preset_monthly),
+                getString(R.string.preset_quarterly),
+            )
+            binding!!.flPreset.setTagCheckedMode(FlowTagLayout.FLOW_TAG_CHECKED_SINGLE)
+            binding!!.flPreset.setItems(presetList)
+            binding!!.flPreset.setSelectedItems(getString(R.string.preset_custom))
+            binding!!.flPreset.setOnTagSelectListener { parent, _, selectedList ->
+                val label = if (selectedList.isNotEmpty()) parent.adapter.getItem(selectedList[0]) as String else getString(R.string.preset_custom)
+                presetType = when (label) {
+                    getString(R.string.preset_hourly) -> "hourly"
+                    getString(R.string.preset_daily) -> "daily"
+                    getString(R.string.preset_weekly) -> "weekly"
+                    getString(R.string.preset_monthly) -> "monthly"
+                    getString(R.string.preset_quarterly) -> "quarterly"
+                    else -> "custom"
+                }
+                when (presetType) {
+                    "weekly" -> {
+                        binding!!.etPresetWeek.visibility = View.VISIBLE
+                        binding!!.etPresetDom.visibility = View.GONE
+                    }
+                    "monthly", "quarterly" -> {
+                        binding!!.etPresetWeek.visibility = View.GONE
+                        binding!!.etPresetDom.visibility = View.VISIBLE
+                    }
+                    else -> {
+                        binding!!.etPresetWeek.visibility = View.GONE
+                        binding!!.etPresetDom.visibility = View.GONE
+                    }
+                }
             }
         }
     }
@@ -1610,6 +1651,57 @@ class CronFragment : BaseFragment<FragmentTasksConditionCronBinding?>(), View.On
     //检查设置
     @SuppressLint("SetTextI18n")
     private fun checkSetting(): CronSetting {
+        // 若选择预设，则按预设生成表达式并写回输入框
+        if (presetType != "custom") {
+            val timeStr = binding!!.etPresetTime.text.toString().trim()
+            val hm = timeStr.split(":")
+            if (hm.size != 2) throw Exception("时间格式无效，示例：08:30")
+            val hh = hm[0].toIntOrNull() ?: throw Exception("小时无效(0-23)")
+            val mm = hm[1].toIntOrNull() ?: throw Exception("分钟无效(0-59)")
+            if (hh !in 0..23) throw Exception("小时无效(0-23)")
+            if (mm !in 0..59) throw Exception("分钟无效(0-59)")
+
+            second = "0"
+            minute = String.format("%02d", mm)
+            hour = when (presetType) {
+                "hourly" -> "*"
+                else -> String.format("%02d", hh)
+            }
+            day = "*"
+            month = "*"
+            week = "?"
+            year = "*"
+
+            when (presetType) {
+                "weekly" -> {
+                    val w = binding!!.etPresetWeek.text.toString().trim().toIntOrNull() ?: throw Exception("星期无效(1-7)")
+                    if (w !in 1..7) throw Exception("星期无效(1-7)")
+                    week = w.toString()
+                    day = "?" // 与周互斥
+                }
+                "monthly", "quarterly" -> {
+                    val d = binding!!.etPresetDom.text.toString().trim().toIntOrNull() ?: throw Exception("日期无效(1-31)")
+                    if (d !in 1..31) throw Exception("日期无效(1-31)")
+                    day = d.toString()
+                    week = "?"
+                }
+            }
+
+            if (presetType == "quarterly") {
+                // 每季度的月份：1,4,7,10
+                month = "1,4,7,10"
+            }
+
+            // 写回到输入框，沿用原有校验与描述生成
+            binding!!.etSecond.setText(second)
+            binding!!.etMinute.setText(minute)
+            binding!!.etHour.setText(hour)
+            binding!!.etDay.setText(day)
+            binding!!.etMonth.setText(month)
+            binding!!.etWeek.setText(week)
+            binding!!.etYear.setText(year)
+        }
+
         second = binding!!.etSecond.text.toString().trim()
         minute = binding!!.etMinute.text.toString().trim()
         hour = binding!!.etHour.text.toString().trim()

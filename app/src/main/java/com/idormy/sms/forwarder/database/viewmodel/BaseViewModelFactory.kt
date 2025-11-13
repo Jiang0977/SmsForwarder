@@ -47,6 +47,12 @@ class BaseViewModelFactory(private val context: Context?) : ViewModelProvider.Fa
                 @Suppress("UNCHECKED_CAST")
                 return TaskViewModel(taskDao) as T
             }
+
+            modelClass.isAssignableFrom(TaskLogViewModel::class.java) -> {
+                val taskLogDao = AppDatabase.getInstance(context).taskLogDao()
+                @Suppress("UNCHECKED_CAST")
+                return TaskLogViewModel(com.idormy.sms.forwarder.database.repository.TaskLogRepository(taskLogDao)) as T
+            }
         }
 
         throw IllegalArgumentException("Unknown ViewModel class")

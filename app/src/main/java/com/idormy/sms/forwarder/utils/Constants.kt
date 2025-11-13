@@ -17,6 +17,7 @@ object TaskWorker {
     const val MSG = "msg"
     const val MSG_INFO = "msg_info"
     const val ACTION = "action"
+    const val PLANNED_TIME = "planned_time"
 }
 
 //服务相关

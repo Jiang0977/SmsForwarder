@@ -37,6 +37,61 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/preset_quick"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:background="?attr/xui_config_color_separator_light" />
+
+                <com.xuexiang.xui.widget.flowlayout.FlowTagLayout
+                    android:id="@+id/fl_preset"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:id="@+id/layout_preset_inputs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="6dp">
+
+                    <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                        android:id="@+id/et_preset_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/preset_time_hint"
+                        android:inputType="time"
+                        app:met_clearButton="true"
+                        tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
+
+                    <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                        android:id="@+id/et_preset_week"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/preset_week_hint"
+                        android:inputType="number"
+                        android:visibility="gone"
+                        app:met_clearButton="true"
+                        tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
+
+                    <com.xuexiang.xui.widget.edittext.materialedittext.MaterialEditText
+                        android:id="@+id/et_preset_dom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/preset_dom_hint"
+                        android:inputType="number"
+                        android:visibility="gone"
+                        app:met_clearButton="true"
+                        tools:ignore="TouchTargetSizeCheck,TextContrastCheck" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/task_cron"
                     android:textSize="@dimen/text_size_big"
                     android:textStyle="bold" />

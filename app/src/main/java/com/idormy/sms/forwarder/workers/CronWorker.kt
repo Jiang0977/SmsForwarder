@@ -3,6 +3,7 @@ package com.idormy.sms.forwarder.workers
 import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -85,9 +86,19 @@ class CronWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
 
             //TODO: 组装消息体 && 执行具体任务
             val msgInfo = MsgInfo("task", task.name, task.description, Date(), task.name)
-            val actionData = Data.Builder().putLong(TaskWorker.TASK_ID, task.id).putString(TaskWorker.TASK_ACTIONS, task.actions).putString(TaskWorker.MSG_INFO, Gson().toJson(msgInfo)).build()
+            val actionData = Data.Builder()
+                .putLong(TaskWorker.TASK_ID, task.id)
+                .putString(TaskWorker.TASK_ACTIONS, task.actions)
+                .putString(TaskWorker.MSG_INFO, Gson().toJson(msgInfo))
+                .putLong(TaskWorker.PLANNED_TIME, task.lastExecTime.time)
+                .build()
             val actionRequest = OneTimeWorkRequestBuilder<ActionWorker>().setInputData(actionData).build()
-            WorkManager.getInstance().enqueue(actionRequest)
+            // 全局唯一串行队列，按入队顺序执行
+            WorkManager.getInstance().beginUniqueWork(
+                "GLOBAL_TASK_ACTION_QUEUE",
+                ExistingWorkPolicy.APPEND,
+                actionRequest
+            ).enqueue()
 
             // 为新的 nextExecTime 调度下一次任务执行
             CronJobScheduler.cancelTask(task.id)
