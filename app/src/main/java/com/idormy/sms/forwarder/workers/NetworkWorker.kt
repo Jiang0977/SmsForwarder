@@ -20,27 +20,19 @@ import com.idormy.sms.forwarder.utils.PhoneUtils
 import com.idormy.sms.forwarder.utils.TaskWorker
 import com.idormy.sms.forwarder.utils.task.ConditionUtils
 import com.idormy.sms.forwarder.utils.task.TaskUtils
-import com.xuexiang.xutil.app.ServiceUtils
 import com.xuexiang.xutil.resource.ResUtils.getString
-import java.net.HttpURLConnection
-import java.net.URL
 import java.util.Date
 
 @Suppress("PrivatePropertyName", "DEPRECATION")
 class NetworkWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     private val TAG: String = NetworkWorker::class.java.simpleName
-    private val ipv4Pattern = Regex("^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
-    private val ipv6Pattern = Regex("^((?:[\\da-fA-F]{0,4}:[\\da-fA-F]{0,4}){2,7})(?:[/\\\\%](\\d{1,3}))?$")
 
     override suspend fun doWork(): Result {
         try {
-            //获取公网IP地址
-            val ipv4 = getPublicIP(false)
-            TaskUtils.ipv4 = if (ipv4Pattern.matches(ipv4)) ipv4 else ""
-            val ipv6 = getPublicIP(true)
-            TaskUtils.ipv6 = if (ipv6Pattern.matches(ipv6)) ipv6 else ""
-            Log.d(TAG, "ipv4 = $ipv4, ipv6 = $ipv6")
+            // 隐私版不向第三方服务查询公网地址，同时清除旧缓存。
+            TaskUtils.ipv4 = ""
+            TaskUtils.ipv6 = ""
             //获取所有IP地址
             val ipList = CommonUtils.getIPAddresses().filter { !isLocalAddress(it) }
             TaskUtils.ipList = if (ipList.isNotEmpty()) ipList.joinToString("\n") else ""
@@ -124,21 +116,6 @@ class NetworkWorker(context: Context, params: WorkerParameters) : CoroutineWorke
                     }
                 }
 
-                val isHttpServerRunning = ServiceUtils.isServiceRunning("com.idormy.sms.forwarder.service.HttpServerService")
-                if (ipv4Pattern.matches(ipv4)) {
-                    msg.append(getString(R.string.ipv4)).append(": ").append(ipv4).append("\n")
-                    if (isHttpServerRunning) {
-                        msg.append(getString(R.string.http_server)).append(": ").append("http://${ipv4}:5000").append("\n")
-                    }
-                }
-
-                if (ipv6Pattern.matches(ipv6)) {
-                    msg.append(getString(R.string.ipv6)).append(": ").append(ipv6).append("\n")
-                    if (isHttpServerRunning) {
-                        msg.append(getString(R.string.http_server)).append(": ").append("http://[${ipv6}]:5000").append("\n")
-                    }
-                }
-
                 //TODO: 组装消息体 && 执行具体任务
                 val msgInfo = MsgInfo("task", task.name, msg.toString().trimEnd(), Date(), task.description)
                 val actionData = Data.Builder().putLong(TaskWorker.TASK_ID, task.id).putString(TaskWorker.TASK_ACTIONS, task.actions).putString(TaskWorker.MSG_INFO, Gson().toJson(msgInfo)).build()
@@ -150,22 +127,6 @@ class NetworkWorker(context: Context, params: WorkerParameters) : CoroutineWorke
         } catch (e: Exception) {
             Log.e(TAG, "Error running worker: ${e.message}", e)
             return Result.failure()
-        }
-    }
-
-    //获取公网IP地址
-    private fun getPublicIP(ipv6: Boolean = false): String {
-        if (TaskUtils.networkState == 0) return ""
-
-        return try {
-            val url = if (ipv6) URL("https://api6.ipify.org/") else URL("https://api.ipify.org/")
-            val urlConnection = url.openConnection() as HttpURLConnection
-            urlConnection.requestMethod = "GET"
-            val inputStream = urlConnection.inputStream
-            inputStream.bufferedReader().use { it.readText() }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error running worker: ${e.message}", e)
-            ""
         }
     }
 

@@ -262,7 +262,7 @@ class WebhookUtils {
                 }
             }
 
-            request.ignoreHttpsCert() //忽略https证书
+            request
                 .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
                 .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间
                 .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000) //超时重试叠加延时
@@ -272,7 +272,7 @@ class WebhookUtils {
                 .execute(object : SimpleCallBack<String>() {
 
                     override fun onError(e: ApiException) {
-                        //e.printStackTrace()
+                        //Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                         Log.e(TAG, e.detailMessage)
                         val status = if (setting.response.isNotEmpty() && e.detailMessage.contains(setting.response)) 2 else 0
                         SendUtils.updateLogs(logId, status, e.displayMessage)

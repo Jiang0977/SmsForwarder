@@ -1208,4 +1208,6 @@
     <string name="start_discovery">搜索裝置</string>
     <string name="invalid_bluetooth_mac_address">藍牙裝置MAC地址無效，例如：AA:BB:CC:DD:EE:FF</string>
     <string name="auto_start_redmi"><![CDATA[紅米手機：授權管理 -> 自啟動管理 -> 允許應用自啟動]]></string>
+    <string name="remote_server_disabled_for_security">此版本已停用 HTTP 遠端控制服務，以保護簡訊和通道憑證。</string>
+    <string name="frpc_disabled_for_security">此版本已停用 Frpc 內網穿透及線上元件下載。</string>
 </resources>

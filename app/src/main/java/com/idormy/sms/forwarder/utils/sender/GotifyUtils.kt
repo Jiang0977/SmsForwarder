@@ -54,7 +54,6 @@ class GotifyUtils {
             request.params("title", title)
                 .params("message", content)
                 .params("priority", setting.priority)
-                .ignoreHttpsCert() //忽略https证书
                 .keepJson(true)
                 .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
                 .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间

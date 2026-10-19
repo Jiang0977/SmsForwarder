@@ -107,7 +107,7 @@ class BarkUtils {
                 request.headers("Content-Type", "application/x-www-form-urlencoded")
             }
 
-            request.ignoreHttpsCert() //忽略https证书
+            request
                 .keepJson(true)
                 .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
                 .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间

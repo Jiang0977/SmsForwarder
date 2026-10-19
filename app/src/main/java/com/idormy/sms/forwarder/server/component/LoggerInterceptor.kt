@@ -3,6 +3,7 @@ package com.idormy.sms.forwarder.server.component
 import com.idormy.sms.forwarder.utils.Log
 import com.idormy.sms.forwarder.R
 import com.idormy.sms.forwarder.utils.HttpServerUtils
+import com.idormy.sms.forwarder.utils.NetworkSecurity
 import com.xuexiang.xutil.resource.ResUtils.getString
 import com.yanzhenjie.andserver.annotation.Interceptor
 import com.yanzhenjie.andserver.error.HttpException
@@ -24,6 +25,9 @@ class LoggerInterceptor : HandlerInterceptor {
         respons: HttpResponse,
         handler: RequestHandler,
     ): Boolean {
+        if (!NetworkSecurity.allowRemoteHttpServer) {
+            throw HttpException(403, getString(R.string.remote_server_disabled_for_security))
+        }
         if (handler is MethodHandler) {
             val httpPath = request.path
             val method: HttpMethod = request.method

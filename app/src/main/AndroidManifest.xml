@@ -81,7 +81,10 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
+        tools:replace="android:allowBackup"
         android:name=".App"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:configChanges="screenSize|keyboardHidden|orientation|keyboard"
         android:defaultToDeviceProtectedStorage="true"
         android:directBootAware="true"

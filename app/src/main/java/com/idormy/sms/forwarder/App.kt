@@ -51,9 +51,10 @@ import com.idormy.sms.forwarder.utils.FRPC_LIB_VERSION
 import com.idormy.sms.forwarder.utils.HistoryUtils
 import com.idormy.sms.forwarder.utils.HttpServerUtils
 import com.idormy.sms.forwarder.utils.Log
+import com.idormy.sms.forwarder.utils.PrivacyCleanup
+import com.idormy.sms.forwarder.utils.NetworkSecurity
 import com.idormy.sms.forwarder.utils.SettingUtils
 import com.idormy.sms.forwarder.utils.SharedPreference
-import com.idormy.sms.forwarder.utils.sdkinit.UMengInit
 import com.idormy.sms.forwarder.utils.sdkinit.XBasicLibInit
 import com.idormy.sms.forwarder.utils.tinker.TinkerLoadLibrary
 import com.king.location.LocationClient
@@ -189,7 +190,7 @@ class App : Application(), CactusCallback, Configuration.Provider by Core {
             //动态加载FrpcLib
             val libPath = filesDir.absolutePath + "/libs"
             val soFile = File(libPath)
-            if (soFile.exists()) {
+            if (NetworkSecurity.allowDynamicFrpc && soFile.exists()) {
                 try {
                     TinkerLoadLibrary.installNativeLibraryPath(classLoader, soFile)
                     FrpclibInited = FileUtils.isFileExists(filesDir.absolutePath + "/libs/libgojni.so") && FRPC_LIB_VERSION == Frpclib.getVersion()
@@ -208,7 +209,7 @@ class App : Application(), CactusCallback, Configuration.Provider by Core {
             }
 
             //启动HttpServer
-            if (HttpServerUtils.enableServerAutorun) {
+            if (NetworkSecurity.allowRemoteHttpServer && HttpServerUtils.enableServerAutorun) {
                 Intent(this, HttpServerService::class.java).also {
                     startService(it)
                 }
@@ -332,10 +333,9 @@ class App : Application(), CactusCallback, Configuration.Provider by Core {
         // 初始化日志打印
         isDebug = SettingUtils.enableDebugMode
         Log.init(applicationContext)
+        PrivacyCleanup.run(applicationContext)
         // 转发历史工具类初始化
         HistoryUtils.init(applicationContext)
-        // 运营统计数据
-        UMengInit.init(this)
         // 初始化语种切换框架
         MultiLanguages.init(this)
         // 设置语种变化监听器

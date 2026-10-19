@@ -64,7 +64,7 @@ class UrlSchemeUtils private constructor() {
                 SendUtils.updateLogs(logId, 2, "调用成功")
                 SendUtils.senderLogic(2, msgInfo, rule, senderIndex, msgId)
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                 Log.e(TAG, "sendMsg error:$e")
                 SendUtils.updateLogs(logId, 0, e.message.toString())
                 SendUtils.senderLogic(0, msgInfo, rule, senderIndex, msgId)

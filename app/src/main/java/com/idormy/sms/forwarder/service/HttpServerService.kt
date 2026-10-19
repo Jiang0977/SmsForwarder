@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import com.idormy.sms.forwarder.utils.Log
+import com.idormy.sms.forwarder.utils.NetworkSecurity
 import com.idormy.sms.forwarder.utils.HTTP_SERVER_PORT
 import com.idormy.sms.forwarder.utils.HTTP_SERVER_TIME_OUT
 import com.idormy.sms.forwarder.utils.SettingUtils
@@ -25,6 +26,10 @@ class HttpServerService : Service(), Server.ServerListener {
 
     override fun onCreate() {
         super.onCreate()
+        if (!NetworkSecurity.allowRemoteHttpServer) {
+            stopSelf()
+            return
+        }
 
         //纯客户端模式
         if (SettingUtils.enablePureClientMode) return
@@ -34,12 +39,17 @@ class HttpServerService : Service(), Server.ServerListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (!NetworkSecurity.allowRemoteHttpServer) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         Log.i(TAG, "onStartCommand: ")
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        if (!NetworkSecurity.allowRemoteHttpServer) return
 
         //纯客户端模式
         if (SettingUtils.enablePureClientMode) return

@@ -55,6 +55,9 @@ interface LogsDao {
     )
     fun updateResponse(id: Long, response: String): Int
 
+    @Query("UPDATE Logs SET forward_response = :replacement")
+    fun clearLegacyResponses(replacement: String): Int
+
     @Query("SELECT * FROM Logs where id=:id")
     fun get(id: Long): Single<Logs>
 

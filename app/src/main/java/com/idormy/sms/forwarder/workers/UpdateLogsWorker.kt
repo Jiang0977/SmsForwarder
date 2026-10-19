@@ -7,6 +7,7 @@ import com.google.gson.Gson
 import com.idormy.sms.forwarder.core.Core
 import com.idormy.sms.forwarder.entity.result.SendResponse
 import com.idormy.sms.forwarder.utils.Log
+import com.idormy.sms.forwarder.utils.PrivacyLog
 import com.idormy.sms.forwarder.utils.Worker
 import com.xuexiang.xutil.data.DateUtils
 import kotlinx.coroutines.Dispatchers
@@ -19,18 +20,18 @@ class UpdateLogsWorker(context: Context, params: WorkerParameters) : CoroutineWo
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             val sendResponseJson = inputData.getString(Worker.UPDATE_LOGS)
-            Log.d("UpdateLogsWorker", "UpdateLogsWorker sendResponseJson: $sendResponseJson")
             val sendResponse = Gson().fromJson(sendResponseJson, SendResponse::class.java)
             if (sendResponse.logId == 0L) {
                 Log.e("UpdateLogsWorker", "UpdateLogsWorker error: logId is 0")
                 return@withContext Result.failure()
             }
+            val safeResponse = PrivacyLog.forwardingResponse(sendResponse.status, sendResponse.response)
             if (sendResponse.status >= 0) {
-                val response = sendResponse.response + "\nAt " + DateUtils.getNowString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()))
+                val response = safeResponse + "\nAt " + DateUtils.getNowString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()))
                 Thread.sleep(100) //让status=-1的日志先更新
                 Core.logs.updateStatus(sendResponse.logId, sendResponse.status, response)
             } else {
-                Core.logs.updateResponse(sendResponse.logId, sendResponse.response)
+                Core.logs.updateResponse(sendResponse.logId, safeResponse)
             }
 
             return@withContext Result.success()

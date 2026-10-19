@@ -21,6 +21,9 @@ class LogsRepository(private val logsDao: LogsDao) {
     @WorkerThread
     fun updateResponse(id: Long, response: String): Int = logsDao.updateResponse(id, response)
 
+    @WorkerThread
+    fun clearLegacyResponses() = logsDao.clearLegacyResponses("Legacy diagnostic detail removed for privacy")
+
     fun getOne(id: Long) = logsDao.getOne(id)
 
     fun getIdsByTimeAndStatus(hours: Int, statusList: List<Int>): List<Logs> {

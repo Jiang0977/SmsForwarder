@@ -2,6 +2,7 @@ package com.idormy.sms.forwarder.utils.sdkinit
 
 import android.app.Application
 import com.idormy.sms.forwarder.App
+import com.idormy.sms.forwarder.utils.NetworkSecurity
 import com.idormy.sms.forwarder.core.BaseActivity
 import com.idormy.sms.forwarder.utils.SettingUtils
 import com.idormy.sms.forwarder.utils.XToastUtils
@@ -51,7 +52,7 @@ class XBasicLibInit private constructor() {
          */
         private fun initXUtil(application: Application) {
             XUtil.init(application)
-            XUtil.debug(App.isDebug)
+            XUtil.debug(false)
         }
 
         /**
@@ -60,21 +61,18 @@ class XBasicLibInit private constructor() {
         private fun initXHttp2(application: Application) {
             //初始化网络请求框架，必须首先执行
             XHttpSDK.init(application)
-            //需要调试的时候执行
-            if (App.isDebug) {
-                XHttpSDK.debug()
-            }
+            // 不启用 SDK 原始报文日志；应用拦截器只记录请求元数据。
             //设置网络请求的全局基础地址
             XHttpSDK.setBaseUrl("https://gitee.com/")
             //设置自定义的日志打印拦截器
-            //XHttpSDK.debug(LoggingInterceptor())
             //设置动态参数添加拦截器
             //XHttpSDK.addInterceptor(CustomDynamicInterceptor())
             //请求失效校验拦截器
             //XHttpSDK.addInterceptor(CustomExpiredInterceptor())
             //设置全局超时时间
             XHttp.getInstance()
-                .debug(App.isDebug)
+                .debug(false)
+                .setHostnameVerifier(NetworkSecurity.hostnameVerifier)
                 .setCacheMode(CacheMode.NO_CACHE)
                 .setTimeout(SettingUtils.requestTimeout * 1000L) //单次超时时间
             //.setRetryCount(SettingUtils.requestRetryTimes) //超时重试的次数
@@ -87,7 +85,7 @@ class XBasicLibInit private constructor() {
          */
         private fun initXPage(application: Application) {
             PageConfig.getInstance()
-                .debug(App.isDebug)
+                .debug(false)
                 .setContainActivityClazz(BaseActivity::class.java)
                 .init(application)
         }
@@ -97,7 +95,7 @@ class XBasicLibInit private constructor() {
          */
         private fun initXAOP(application: Application) {
             XAOP.init(application)
-            XAOP.debug(App.isDebug)
+            XAOP.debug(false)
             //设置动态申请权限切片 申请权限被拒绝的事件响应监听
             XAOP.setOnPermissionDeniedListener { permissionsDenied: List<String?>? ->
                 XToastUtils.error(
@@ -111,7 +109,7 @@ class XBasicLibInit private constructor() {
          */
         private fun initXUI(application: Application) {
             XUI.init(application)
-            XUI.debug(App.isDebug)
+            XUI.debug(false)
         }
 
         /**

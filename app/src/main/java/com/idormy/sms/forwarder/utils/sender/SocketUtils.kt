@@ -91,7 +91,7 @@ class SocketUtils {
                     SendUtils.updateLogs(logId, status, response)
                     SendUtils.senderLogic(status, msgInfo, rule, senderIndex, msgId)
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                     Log.e(TAG, "An error occurred: ${e.message}")
                     val status = 0
                     SendUtils.updateLogs(logId, status, e.message.toString())

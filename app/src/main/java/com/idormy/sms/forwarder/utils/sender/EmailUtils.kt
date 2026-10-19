@@ -199,7 +199,7 @@ class EmailUtils {
                                     }
                                 }
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                                 Log.w(TAG, "Failed to load keystore: ${e.message}")
                             }
                         }
@@ -285,7 +285,7 @@ class EmailUtils {
                                     }
                                 }
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                                 Log.w(TAG, "Failed to load recipient($email) keystore($cert): ${e.message}")
                                 //无法加载证书时，发送明文邮件
                                 recipientsWithoutCert.add(email)
@@ -341,7 +341,7 @@ class EmailUtils {
                         }
 
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        Log.e("Sender", "Request failed: ${e.javaClass.simpleName}")
                         Log.e(TAG, e.message.toString())
                         val status = 0
                         SendUtils.updateLogs(logId, status, e.message.toString())

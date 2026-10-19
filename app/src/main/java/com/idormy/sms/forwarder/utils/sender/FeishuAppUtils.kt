@@ -50,7 +50,6 @@ class FeishuAppUtils private constructor() {
             XHttp.post(requestUrl)
                 .upJson(requestMsg)
                 .keepJson(true)
-                .ignoreHttpsCert()
                 .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
                 .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间
                 .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000) //超时重试叠加延时
@@ -131,7 +130,6 @@ class FeishuAppUtils private constructor() {
 
             val accessToken: String by SharedPreference("feishu_access_token_" + setting.appId, "")
             XHttp.post(requestUrl).upJson(requestMsg).headers("Authorization", "Bearer $accessToken").keepJson(true)
-                //.ignoreHttpsCert()
                 .retryCount(SettingUtils.requestRetryTimes) //超时重试的次数
                 .retryDelay(SettingUtils.requestDelayTime * 1000) //超时重试的延迟时间
                 .retryIncreaseDelay(SettingUtils.requestDelayTime * 1000) //超时重试叠加延时

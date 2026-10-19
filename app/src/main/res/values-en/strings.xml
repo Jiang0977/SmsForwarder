@@ -1206,4 +1206,6 @@
     <string name="start_discovery">Discovery</string>
     <string name="invalid_bluetooth_mac_address">Bluetooth Mac Address is invalid, eg. AA:BB:CC:DD:EE:FF</string>
     <string name="auto_start_redmi"><![CDATA[RedMi: Authorization Management -> Self-Start Management -> Allow Apps to Self-Start]]></string>
+    <string name="remote_server_disabled_for_security">HTTP remote control is disabled in this build to protect messages and channel credentials.</string>
+    <string name="frpc_disabled_for_security">Frpc tunnelling and online component downloads are disabled in this build.</string>
 </resources>

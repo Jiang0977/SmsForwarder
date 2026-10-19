@@ -274,6 +274,10 @@ class ServerFragment : BaseFragment<FragmentServerBinding?>(), View.OnClickListe
     override fun onClick(v: View) {
         when (v.id) {
             R.id.btn_toggle_server -> {
+                if (!com.idormy.sms.forwarder.utils.NetworkSecurity.allowRemoteHttpServer) {
+                    XToastUtils.error(R.string.remote_server_disabled_for_security)
+                    return
+                }
                 //检查权限是否获取
                 checkSendSmsPermission()
                 checkReadSmsPermission()
@@ -292,7 +296,6 @@ class ServerFragment : BaseFragment<FragmentServerBinding?>(), View.OnClickListe
 
             R.id.btn_sm4_key -> {
                 val key = ConvertTools.bytes2HexString(SM4Crypt.createSM4Key())
-                println("SM4密钥：$key")
                 ClipboardUtils.copyText(key)
                 binding!!.etSm4Key.setText(key)
                 XToastUtils.info(getString(R.string.sign_key_tips))
@@ -307,9 +310,6 @@ class ServerFragment : BaseFragment<FragmentServerBinding?>(), View.OnClickListe
 
                 val publicKeyEncoded = Base64.encode(publicKey.encoded)
                 val privateKeyEncoded = Base64.encode(privateKey.encoded)
-
-                println("publicKey=$publicKeyEncoded")
-                println("privateKey=$privateKeyEncoded")
 
                 binding!!.etPublicKey.setText(publicKeyEncoded)
                 binding!!.etPrivateKey.setText(privateKeyEncoded)
