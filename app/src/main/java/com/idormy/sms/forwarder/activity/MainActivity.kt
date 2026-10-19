@@ -44,8 +44,6 @@ import com.idormy.sms.forwarder.utils.FRPC_LIB_VERSION
 import com.idormy.sms.forwarder.utils.Log
 import com.idormy.sms.forwarder.utils.SettingUtils
 import com.idormy.sms.forwarder.utils.XToastUtils
-import com.idormy.sms.forwarder.utils.sdkinit.XUpdateInit
-import com.idormy.sms.forwarder.widget.GuideTipsDialog.Companion.showTips
 import com.idormy.sms.forwarder.workers.LoadAppListWorker
 import com.jeremyliao.liveeventbus.LiveEventBus
 import com.xuexiang.xhttp2.XHttp
@@ -60,7 +58,6 @@ import com.xuexiang.xui.widget.dialog.materialdialog.DialogAction
 import com.xuexiang.xui.widget.dialog.materialdialog.GravityEnum
 import com.xuexiang.xui.widget.dialog.materialdialog.MaterialDialog
 import com.xuexiang.xutil.file.FileUtils
-import com.xuexiang.xutil.net.NetworkUtils
 import com.yarolegovich.slidingrootnav.SlideGravity
 import com.yarolegovich.slidingrootnav.SlidingRootNav
 import com.yarolegovich.slidingrootnav.SlidingRootNavBuilder
@@ -177,11 +174,7 @@ class MainActivity : BaseActivity<ActivityMainBinding?>(), DrawerAdapter.OnItemS
         mMenuTitles = ResUtils.getStringArray(this, R.array.menu_titles)
         mMenuIcons = ResUtils.getDrawableArray(this, R.array.menu_icons)
 
-        //仅当开启自动检查且有网络时自动检查更新/获取提示
-        if (SettingUtils.autoCheckUpdate && NetworkUtils.isHaveInternet()) {
-            showTips(this)
-            XUpdateInit.checkUpdate(this, false, SettingUtils.joinPreviewProgram)
-        }
+        // Fork 版本不在启动时请求上游公告或更新，避免提示安装不同的应用。
     }
 
     //按返回键不退出回到桌面
