@@ -363,6 +363,11 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
 
                         override fun onDenied(permissions: List<String>, never: Boolean) {
                             Log.e(TAG, "onDenied: permissions=$permissions, never=$never")
+                            // 新短信通过 RECEIVE_SMS 广播转发，其他短信权限被拒绝不应关闭转发。
+                            if (XXPermissions.isGranted(requireContext(), Permission.RECEIVE_SMS)) {
+                                XToastUtils.warning(getString(R.string.forward_sms) + ": " + getString(R.string.toast_granted_part))
+                                return
+                            }
                             if (never) {
                                 XToastUtils.error(getString(R.string.forward_sms) + ": " + getString(R.string.toast_denied_never))
                                 // 如果是被永久拒绝就跳转到应用权限系统设置页面
